@@ -1,0 +1,52 @@
+/* Estilos generales de la aplicación */
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-base: #f0f0f0;
+    -fx-background: #f5f5f5;
+}
+
+/* Estilos para botones */
+.button {
+    -fx-background-color: #1a73e8;
+    -fx-text-fill: white;
+    -fx-padding: 8px 16px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #1557b0;
+}
+
+/* Estilos para campos de texto */
+.text-field, .password-field {
+    -fx-pref-height: 35px;
+    -fx-background-radius: 4px;
+    -fx-border-color: #dadce0;
+    -fx-border-radius: 4px;
+    -fx-padding: 0 10px;
+}
+
+/* Estilos para etiquetas */
+.label {
+    -fx-text-fill: #202124;
+}
+
+/* Estilos para el área de mensajes */
+.message-label {
+    -fx-text-fill: #d93025;
+    -fx-padding: 10px 0;
+}
+
+/* Estilos para la barra de navegación */
+.nav-bar {
+    -fx-background-color: #1a73e8;
+    -fx-padding: 15px;
+}
+
+/* Estilos para la lista de productos */
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #dadce0;
+    -fx-border-radius: 4px;
+}

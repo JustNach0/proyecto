@@ -43,6 +43,22 @@
 
             <VBox spacing="40" alignment="TOP_CENTER" style="-fx-padding: 40 0;">
 
+                <HBox spacing="20" alignment="CENTER">
+                    <Button text="Vista de Cuadrícula" onAction="#desactivarModoNavegacion" 
+                            style="-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 8 16;" />
+                    <Button text="Vista Detallada" onAction="#activarModoNavegacion" 
+                            style="-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 8 16;" />
+                </HBox>
+
+                <HBox id="navegacionDetallada" visible="false" spacing="20" alignment="CENTER">
+                    <Button text="Anterior" onAction="#productoAnterior" 
+                            style="-fx-background-color: #555; -fx-text-fill: white; -fx-padding: 8 24;" />
+                    <Label id="contadorProducto" text="1 de 6" 
+                           style="-fx-text-fill: white; -fx-font-size: 16px; -fx-min-width: 100; -fx-alignment: center;" />
+                    <Button text="Siguiente" onAction="#productoSiguiente" 
+                            style="-fx-background-color: #555; -fx-text-fill: white; -fx-padding: 8 24;" />
+                </HBox>
+
                 <Label text="Nueva Colección 2025"
                        style="-fx-text-fill: white; -fx-font-size: 42px; -fx-font-weight: 900;" />
 

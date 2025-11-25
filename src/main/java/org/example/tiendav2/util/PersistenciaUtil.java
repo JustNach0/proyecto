@@ -15,15 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Utilidad para la persistencia de datos en archivos.
- * Maneja la serialización y deserialización de objetos a archivos.
- */
 public final class PersistenciaUtil {
     private static final Logger logger = LoggerFactory.getLogger(PersistenciaUtil.class);
     private static final String DATA_DIR = System.getProperty("user.home") + "/tiendav2/data/";
 
-    // Bloque de inicialización estático
     static {
         try {
             Path path = Paths.get(DATA_DIR);
@@ -38,42 +33,23 @@ public final class PersistenciaUtil {
     }
 
     private PersistenciaUtil() {
-        // Constructor privado para evitar instanciación
     }
 
-    // ===== MÉTODOS PÚBLICOS =====
-
-    /**
-     * Carga la lista de productos desde el archivo.
-     * @return Lista de productos cargados o lista vacía si hay error
-     */
     @SuppressWarnings("unchecked")
     public static List<Producto> cargarProductos() {
         return (List<Producto>) cargarDatos("productos.dat", Producto.class);
     }
 
-    /**
-     * Carga la lista de usuarios desde el archivo.
-     * @return Lista de usuarios cargados o lista vacía si hay error
-     */
     @SuppressWarnings("unchecked")
     public static List<Usuario> cargarUsuarios() {
         return (List<Usuario>) cargarDatos("usuarios.dat", Usuario.class);
     }
 
-    /**
-     * Carga la lista de compras desde el archivo.
-     * @return Lista de compras cargadas o lista vacía si hay error
-     */
     @SuppressWarnings("unchecked")
     public static List<Compra> cargarCompras() {
         return (List<Compra>) cargarDatos("compras.dat", Compra.class);
     }
 
-    /**
-     * Guarda la lista de productos en el archivo.
-     * @param productos Lista de productos a guardar
-     */
     public static void guardarProductos(List<Producto> productos) {
         if (productos == null) {
             throw new IllegalArgumentException("La lista de productos no puede ser nula");
@@ -81,10 +57,6 @@ public final class PersistenciaUtil {
         guardarDatos(new ArrayList<>(productos), "productos.dat");
     }
 
-    /**
-     * Guarda la lista de usuarios en el archivo.
-     * @param usuarios Lista de usuarios a guardar
-     */
     public static void guardarUsuarios(List<Usuario> usuarios) {
         if (usuarios == null) {
             throw new IllegalArgumentException("La lista de usuarios no puede ser nula");
@@ -92,10 +64,6 @@ public final class PersistenciaUtil {
         guardarDatos(new ArrayList<>(usuarios), "usuarios.dat");
     }
 
-    /**
-     * Guarda la lista de compras en el archivo.
-     * @param compras Lista de compras a guardar
-     */
     public static void guardarCompras(List<Compra> compras) {
         if (compras == null) {
             throw new IllegalArgumentException("La lista de compras no puede ser nula");
@@ -103,10 +71,6 @@ public final class PersistenciaUtil {
         guardarDatos(new ArrayList<>(compras), "compras.dat");
     }
 
-    /**
-     * Realiza una copia de seguridad de todos los archivos de datos.
-     * @throws RuntimeException si ocurre un error durante el proceso de copia de seguridad
-     */
     public static void realizarBackup() {
         Path sourceDir = Paths.get(DATA_DIR);
         Path backupDir = Paths.get(DATA_DIR, "backup", String.valueOf(System.currentTimeMillis()));
@@ -143,24 +107,14 @@ public final class PersistenciaUtil {
         }
     }
 
-    // ===== MÉTODOS PRIVADOS =====
-
-    /**
-     * Guarda los datos en un archivo de forma segura.
-     * @param <T> Tipo de los datos a guardar (debe ser serializable)
-     * @param datos Lista de datos a guardar
-     * @param nombreArchivo Nombre del archivo donde se guardarán los datos
-     */
     private static <T extends Serializable> void guardarDatos(List<T> datos, String nombreArchivo) {
-        // Validación de parámetros
         if (datos == null) {
             throw new IllegalArgumentException("Los datos no pueden ser nulos");
         }
         if (nombreArchivo == null || nombreArchivo.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del archivo no puede estar vacío");
         }
-        
-        // Verificar que los datos sean serializables
+
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ObjectOutputStream oos = new ObjectOutputStream(baos)) {
             oos.writeObject(datos);
@@ -172,10 +126,8 @@ public final class PersistenciaUtil {
         Path archivoTemporal = Paths.get(DATA_DIR, nombreArchivo + ".tmp");
 
         try {
-            // Crear directorio si no existe
             Files.createDirectories(rutaArchivo.getParent());
 
-            // Escribir en archivo temporal primero
             try (ObjectOutputStream out = new ObjectOutputStream(
                     new BufferedOutputStream(
                             Files.newOutputStream(archivoTemporal)))) {
@@ -183,7 +135,6 @@ public final class PersistenciaUtil {
                 logger.debug("Datos guardados temporalmente en: {}", archivoTemporal);
             }
 
-            // Mover archivo temporal a destino final (operación atómica)
             Files.move(archivoTemporal, rutaArchivo,
                      StandardCopyOption.REPLACE_EXISTING,
                      StandardCopyOption.ATOMIC_MOVE);
@@ -191,7 +142,6 @@ public final class PersistenciaUtil {
             logger.debug("Datos guardados correctamente en: {}", rutaArchivo);
 
         } catch (IOException e) {
-            // Limpiar archivo temporal en caso de error
             try {
                 Files.deleteIfExists(archivoTemporal);
             } catch (IOException ex) {
@@ -202,16 +152,8 @@ public final class PersistenciaUtil {
         }
     }
 
-    /**
-     * Carga los datos desde un archivo.
-     * @param <T> Tipo de los datos a cargar
-     * @param nombreArchivo Nombre del archivo desde donde cargar los datos
-     * @param tipoClase Clase del tipo de datos a cargar (para validación)
-     * @return Lista de datos cargados o lista vacía si hay error
-     */
     @SuppressWarnings("unchecked")
     private static <T> List<T> cargarDatos(String nombreArchivo, Class<T> tipoClase) {
-        // Validación de parámetros
         if (nombreArchivo == null || nombreArchivo.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del archivo no puede estar vacío");
         }
@@ -237,8 +179,7 @@ public final class PersistenciaUtil {
             }
             
             List<?> lista = (List<?>) obj;
-            
-            // Verificar que todos los elementos sean del tipo esperado
+
             if (!lista.isEmpty() && !tipoClase.isInstance(lista.get(0))) {
                 logger.error("Tipo de datos inesperado en el archivo {}. Esperado: {}, Encontrado: {}",
                         rutaArchivo, tipoClase.getName(), 

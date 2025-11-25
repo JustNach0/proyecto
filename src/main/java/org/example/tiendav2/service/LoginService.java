@@ -22,7 +22,7 @@ public class LoginService {
         if (usuariosRegistrados.containsKey(email)) {
             return false; // El usuario ya existe
         }
-        
+
         int nuevoId = usuariosRegistrados.size() + 1;
         Usuario nuevoUsuario = new Usuario(nuevoId, nombre, email, password);
         usuariosRegistrados.put(email, nuevoUsuario);
@@ -33,6 +33,10 @@ public class LoginService {
      * Intenta autenticar un usuario con email y contraseña
      */
     public boolean autenticarUsuario(String email, String password) {
+        System.out.println("DEBUG EMAIL: " + email);
+        System.out.println("DEBUG PASS: " + password);
+        System.out.println("USUARIOS REGISTRADOS: " + usuariosRegistrados.keySet());
+
         Usuario usuario = usuariosRegistrados.get(email);
         if (usuario != null && usuario.getPassword().equals(password)) {
             this.usuarioActual = usuario;

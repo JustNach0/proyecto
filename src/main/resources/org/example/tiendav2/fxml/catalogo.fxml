@@ -1,30 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="org.example.tiendav2.controller.CatalogoController" 
-      style="-fx-background-color: #f5f5f5;" spacing="20">
-    
-    <!-- Barra superior -->
-    <HBox style="-fx-background-color: #1a73e8; -fx-padding: 15;" spacing="20">
-        <Label text="Tienda" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
-        <Region HBox.hgrow="ALWAYS" />
-        <Button text="Cerrar Sesión" onAction="#handleLogout" style="-fx-background-color: #d93025; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
-    </HBox>
-    
-    <!-- Contenido principal -->
-    <VBox style="-fx-padding: 20;" spacing="20">
-        <Label text="Catálogo de Productos" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
-        
-        <ListView fx:id="productosList" style="-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 5;" />
-    </VBox>
-    
-    <!-- Pie de página -->
-    <VBox style="-fx-background-color: #f1f3f4; -fx-padding: 15;" spacing="10">
-        <Label text="© 2025 Tienda - Todos los derechos reservados" style="-fx-text-fill: #5f6368; -fx-font-size: 12px;" />
-    </VBox>
-    
-</VBox>
+<BorderPane xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.tiendav2.controller.CatalogoController"
+            style="-fx-background-color: #0d0d0d;">
+
+    <!-- NAVBAR -->
+    <top>
+        <HBox spacing="40" alignment="CENTER_LEFT"
+              style="-fx-padding: 28 40; -fx-background-color: #0d0d0d;">
+            <Label text="NOVA"
+                   style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold; -fx-letter-spacing: 6px;" />
+
+            <HBox spacing="24">
+                <Label text="Colección" style="-fx-text-fill: #e0e0e0; -fx-font-size: 15px; -fx-cursor: hand;" />
+                <Label text="Novedades" style="-fx-text-fill: #e0e0e0; -fx-font-size: 15px; -fx-cursor: hand;" />
+                <Label text="Hombres" style="-fx-text-fill: #e0e0e0; -fx-font-size: 15px; -fx-cursor: hand;" />
+                <Label text="Mujeres" style="-fx-text-fill: #e0e0e0; -fx-font-size: 15px; -fx-cursor: hand;" />
+            </HBox>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <HBox spacing="16">
+                <Label text="Buscar" style="-fx-text-fill: #8a8a8a; -fx-font-size: 15px;" />
+                <Label text="Cuenta" style="-fx-text-fill: #8a8a8a; -fx-font-size: 15px;" />
+                <Label text="Carrito" style="-fx-text-fill: #8a8a8a; -fx-font-size: 15px;" />
+            </HBox>
+        </HBox>
+    </top>
+
+    <!-- CONTENIDO SCROLLEABLE -->
+    <center>
+        <ScrollPane fitToWidth="true"
+                    hbarPolicy="NEVER"
+                    vbarPolicy="AS_NEEDED"
+                    style="-fx-background: transparent; -fx-background-color: transparent;">
+
+            <VBox spacing="40" alignment="TOP_CENTER" style="-fx-padding: 40 0;">
+
+                <Label text="Nueva Colección 2025"
+                       style="-fx-text-fill: white; -fx-font-size: 42px; -fx-font-weight: 900;" />
+
+                <Label text="Diseños minimalistas, cortes limpios, esencia premium."
+                       style="-fx-text-fill: #b0b0b0; -fx-font-size: 16px;" />
+
+                <GridPane fx:id="grid"
+                          hgap="40" vgap="50"
+                          alignment="CENTER"
+                          style="-fx-padding: 20 100;">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="33"/>
+                        <ColumnConstraints percentWidth="33"/>
+                        <ColumnConstraints percentWidth="33"/>
+                    </columnConstraints>
+                </GridPane>
+
+            </VBox>
+
+        </ScrollPane>
+    </center>
+
+</BorderPane>

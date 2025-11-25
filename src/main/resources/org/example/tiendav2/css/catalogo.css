@@ -1,0 +1,38 @@
+/* Tarjeta de producto */
+.product-card {
+    -fx-background-color: #1b1b1b;
+    -fx-background-radius: 16;
+    -fx-padding: 14;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 12, 0, 0, 4);
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-transition: all 0.25s ease-in-out;
+}
+
+.product-card:hover {
+    -fx-translate-y: -8;
+    -fx-scale-x: 1.04;
+    -fx-scale-y: 1.04;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0, 0, 8);
+}
+
+/* Imagen rectangular */
+.product-image {
+    -fx-fill: linear-gradient(to bottom, #2a2a2a, #151515);
+    -fx-arc-height: 16;
+    -fx-arc-width: 16;
+}
+
+/* Texto */
+.product-title {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+}
+
+.product-price {
+    -fx-text-fill: #00ff8a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}

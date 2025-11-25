@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import org.example.tiendav2.Main;
 
 public class LoginController {
     @FXML
@@ -39,7 +40,7 @@ public class LoginController {
         // Aquí iría la lógica de autenticación
         if ("admin@example.com".equals(email) && "admin".equals(password)) {
             // Login exitoso
-            HelloApplication.showMainView();
+            Main.showMainView();
         } else {
             // Credenciales incorrectas
             messageLabel.setText("Correo o contraseña incorrectos");

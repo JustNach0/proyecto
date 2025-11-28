@@ -1,23 +1,26 @@
 package org.example.tiendav2.controller;
 
-import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
+import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.example.tiendav2.model.Producto;
 import org.example.tiendav2.model.Carrito;
-import org.example.tiendav2.model.Pedido;
 import org.example.tiendav2.model.ListaDoblementeEnlazada;
+import org.example.tiendav2.model.Pedido;
+import org.example.tiendav2.model.Producto;
 import org.example.tiendav2.service.PedidoService;
+
+import java.util.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,14 @@ public class CatalogoController {
 
     @FXML
     private GridPane grid;
+    @FXML
+    private Label contadorCarrito;
+    @FXML
+    private VBox carritoContenido;
+    @FXML
+    private ScrollPane scrollCarrito;
+    @FXML
+    private Label totalCarrito;
     
     private final Carrito carrito = new Carrito(1); // Asumiendo que el ID de usuario es 1 por ahora
     private final PedidoService pedidoService = PedidoService.getInstancia();
@@ -34,10 +45,9 @@ public class CatalogoController {
 
     @FXML
     private void initialize() {
-
         inicializarProductos();
-
         mostrarProductos();
+        actualizarVistaCarrito();
     }
     
     private void inicializarProductos() {
@@ -157,18 +167,99 @@ public class CatalogoController {
     }
     
     /**
-     * Agrega un producto al carrito y muestra un mensaje de confirmación.
+     * Agrega un producto al carrito y actualiza la vista.
      */
     private void agregarAlCarrito(Producto producto) {
-        carrito.agregarProducto(producto);
+        if (producto == null) return;
         
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Producto agregado");
-        alert.setHeaderText(null);
-        alert.setContentText("¡" + producto.getNombre() + " ha sido agregado al carrito!");
-        alert.showAndWait();
-
+        carrito.agregarProducto(producto);
+        actualizarVistaCarrito();
+        
+        // Mostrar notificación de producto agregado
+        mostrarNotificacion("✓ " + producto.getNombre() + " agregado al carrito");
+    }
+    
+    /**
+     * Muestra una notificación temporal en la esquina inferior derecha
+     */
+    private void mostrarNotificacion(String mensaje) {
+        Label notificacion = new Label(mensaje);
+        notificacion.setStyle(
+            "-fx-background-color: rgba(0, 0, 0, 0.8);" +
+            "-fx-text-fill: white;" +
+            "-fx-padding: 10px 15px;" +
+            "-fx-background-radius: 5px;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);"
+        );
+        
+        StackPane root = (StackPane) grid.getScene().getRoot();
+        StackPane.setAlignment(notificacion, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(notificacion, new Insets(0, 20, 20, 0));
+        
+        root.getChildren().add(notificacion);
+        
+        // Animación de desvanecimiento
+        FadeTransition ft = new FadeTransition(Duration.millis(3000), notificacion);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> root.getChildren().remove(notificacion));
+        ft.play();
+    }
+    
+    /**
+     * Actualiza la vista del carrito mostrando los productos y el total
+     */
+    private void actualizarVistaCarrito() {
+        carritoContenido.getChildren().clear();
+        
+        if (carrito.estaVacio()) {
+            Label vacio = new Label("El carrito está vacío");
+            vacio.setStyle("-fx-text-fill: #888; -fx-font-style: italic;");
+            carritoContenido.getChildren().add(vacio);
+        } else {
+            for (int i = 0; i < carrito.getCantidadProductos(); i++) {
+                Producto producto = carrito.obtenerProducto(i);
+                HBox item = crearItemCarrito(producto);
+                carritoContenido.getChildren().add(item);
+            }
+        }
+        
+        // Actualizar total
+        totalCarrito.setText(String.format("$%,.2f", carrito.getTotal()));
         actualizarContadorCarrito();
+    }
+    
+    /**
+     * Crea un elemento de producto para mostrar en el carrito
+     */
+    private HBox crearItemCarrito(Producto producto) {
+        HBox item = new HBox(10);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setStyle("-fx-padding: 10; -fx-background-color: #1a1a1a; -fx-background-radius: 5;");
+        
+        Label nombre = new Label(producto.getNombre());
+        nombre.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        
+        Label precio = new Label(String.format("$%,.0f", producto.getPrecio()));
+        precio.setStyle("-fx-text-fill: #4CAF50; -fx-font-weight: bold;");
+        
+        Button btnEliminar = new Button("×");
+        btnEliminar.setStyle(
+            "-fx-background-color: transparent; " +
+            "-fx-text-fill: #ff4444; " +
+            "-fx-font-size: 16px; " +
+            "-fx-font-weight: bold; " +
+            "-fx-padding: 0 8px;"
+        );
+        btnEliminar.setOnAction(e -> {
+            carrito.removerProducto(producto);
+            actualizarVistaCarrito();
+        });
+        
+        item.getChildren().addAll(nombre, new Region(), precio, btnEliminar);
+        HBox.setHgrow(item.getChildren().get(1), Priority.ALWAYS);
+        
+        return item;
     }
     
 
@@ -179,28 +270,66 @@ public class CatalogoController {
             return;
         }
 
-        String direccion = "Calle Falsa 123";
-        String metodoPago = "Tarjeta de crédito";
-        
+        // Mostrar diálogo para ingresar dirección de envío
+        TextInputDialog direccionDialog = new TextInputDialog("Calle Falsa 123");
+        direccionDialog.setTitle("Dirección de envío");
+        direccionDialog.setHeaderText("Ingrese la dirección de envío");
+        direccionDialog.setContentText("Dirección:");
+
+        Optional<String> direccionResult = direccionDialog.showAndWait();
+        if (direccionResult.isEmpty() || direccionResult.get().trim().isEmpty()) {
+            return;
+        }
+        String direccion = direccionResult.get();
+
+        // Mostrar diálogo para seleccionar método de pago
+        ChoiceDialog<String> pagoDialog = new ChoiceDialog<>("Tarjeta de crédito", 
+            "Tarjeta de crédito", "PayPal", "Transferencia bancaria");
+        pagoDialog.setTitle("Método de pago");
+        pagoDialog.setHeaderText("Seleccione el método de pago");
+        pagoDialog.setContentText("Método de pago:");
+
+        Optional<String> pagoResult = pagoDialog.showAndWait();
+        if (pagoResult.isEmpty()) {
+            return;
+        }
+        String metodoPago = pagoResult.get();
+
         try {
+            // Crear el pedido
             Pedido pedido = pedidoService.crearPedido(carrito, direccion, metodoPago);
-
-            mostrarAlerta("Pedido realizado", "Su pedido ha sido registrado con éxito. Número de pedido: " + 
-                             pedido.getId());
-
+            
+            // Mostrar confirmación
+            Alert confirmacion = new Alert(Alert.AlertType.INFORMATION);
+            confirmacion.setTitle("Compra exitosa");
+            confirmacion.setHeaderText("¡Gracias por tu compra!");
+            confirmacion.setContentText(String.format(
+                "Pedido #%d realizado con éxito.\n" +
+                "Total: $%,.2f\n" +
+                "Dirección de envío: %s\n" +
+                "Método de pago: %s",
+                pedido.getId(), 
+                pedido.getTotal(), 
+                direccion, 
+                metodoPago
+            ));
+            confirmacion.showAndWait();
+            
+            // Limpiar el carrito después de la compra
             carrito.vaciarCarrito();
-            actualizarContadorCarrito();
-
+            actualizarVistaCarrito();
+            
+            // Mostrar estado de la cola de pedidos
             pedidoService.mostrarEstadoCola();
             
-        } catch (IllegalArgumentException e) {
-            mostrarAlerta("Error al crear el pedido", e.getMessage());
+        } catch (Exception e) {
+            mostrarAlerta("Error", "Ocurrió un error al procesar el pedido: " + e.getMessage());
         }
     }
     
 
     private void mostrarAlerta(String titulo, String mensaje) {
-        Alert alert = new Alert(AlertType.INFORMATION);
+        Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensaje);
@@ -209,8 +338,9 @@ public class CatalogoController {
     
 
     private void actualizarContadorCarrito() {
-        System.out.println("Productos en el carrito: " + carrito.getCantidadProductos());
-        System.out.println("Total: $" + carrito.getTotal());
+        int cantidad = carrito.getCantidadProductos();
+        contadorCarrito.setText(String.valueOf(cantidad));
+        contadorCarrito.setVisible(cantidad > 0);
     }
 
     @FXML
@@ -218,41 +348,63 @@ public class CatalogoController {
         if (productosDisponibles.anterior()) {
             mostrarProductoActual();
         } else {
-            System.out.println("Ya estás en el primer producto");
+            mostrarNotificacion("Ya estás en el primer producto");
         }
     }
-
+    
     @FXML
     private void productoSiguiente() {
         if (productosDisponibles.siguiente()) {
             mostrarProductoActual();
         } else {
-            System.out.println("Ya estás en el último producto");
+            mostrarNotificacion("No hay más productos");
         }
     }
-
-    private void mostrarProductoActual() {
-        Producto producto = productosDisponibles.obtenerActual();
-        if (producto != null) {
-            grid.getChildren().clear();
-
-            VBox tarjeta = crearTarjetaProducto(producto);
-            grid.add(tarjeta, 0, 0);
-            System.out.println("Mostrando producto " + (productosDisponibles.obtenerIndiceActual() + 1) + 
-                             " de " + productosDisponibles.tamaño());
-        }
-    }
-
+    
     @FXML
     private void activarModoNavegacion() {
         productosDisponibles.irAlPrimero();
-
         mostrarProductoActual();
+        mostrarNotificacion("Modo de navegación detallada activado");
     }
-
+    
     @FXML
     private void desactivarModoNavegacion() {
         mostrarProductos();
+        mostrarNotificacion("Vista de cuadrícula activada");
+    }
+    
+    @FXML
+    private void vaciarCarrito() {
+        if (carrito.estaVacio()) {
+            mostrarNotificacion("El carrito ya está vacío");
+            return;
+        }
+        
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Vaciar carrito");
+        confirmacion.setHeaderText("¿Estás seguro de que quieres vaciar el carrito?");
+        confirmacion.setContentText("Se eliminarán todos los productos del carrito.");
+        
+        Optional<ButtonType> resultado = confirmacion.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
+            carrito.vaciarCarrito();
+            actualizarVistaCarrito();
+            mostrarNotificacion("Carrito vaciado");
+        }
+    }
+    
+    private void mostrarProductoActual() {
+        if (!productosDisponibles.estaVacia()) {
+            Producto producto = productosDisponibles.obtenerActual();
+            if (producto != null) {
+                grid.getChildren().clear();
+                VBox tarjeta = crearTarjetaProducto(producto);
+                grid.add(tarjeta, 0, 0);
+                System.out.println("Mostrando producto " + (productosDisponibles.obtenerIndiceActual() + 1) + 
+                               " de " + productosDisponibles.tamaño());
+            }
+        }
     }
 
     private void animarHover(VBox box, boolean hover) {
@@ -263,11 +415,15 @@ public class CatalogoController {
         st.setToY(scaleTo);
 
         if (hover) {
+            // Aplicar estilo de hover
             box.setStyle(
-                box.getStyle() + 
+                "-fx-background-color: #1a1a1a; " +
+                "-fx-background-radius: 8; " +
+                "-fx-border-radius: 8; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,255,138,0.4), 15, 0, 0, 8);"
             );
         } else {
+            // Restaurar el estilo original
             box.setStyle(
                 "-fx-background-color: #1a1a1a; " +
                 "-fx-background-radius: 8; " +

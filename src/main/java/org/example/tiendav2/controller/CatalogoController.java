@@ -2,27 +2,25 @@ package org.example.tiendav2.controller;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.example.tiendav2.model.Carrito;
 import org.example.tiendav2.model.ListaDoblementeEnlazada;
 import org.example.tiendav2.model.Pedido;
 import org.example.tiendav2.model.Producto;
 import org.example.tiendav2.service.PedidoService;
+import org.example.tiendav2.service.ProductoService;
 
 import java.util.Optional;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class CatalogoController {
@@ -41,6 +39,7 @@ public class CatalogoController {
     private final Carrito carrito = new Carrito(1); // Asumiendo que el ID de usuario es 1 por ahora
     private final PedidoService pedidoService = PedidoService.getInstancia();
     private final ListaDoblementeEnlazada<Producto> productosDisponibles = new ListaDoblementeEnlazada<>();
+    private final ProductoService productoService = new ProductoService();
     private int productoActualIndex = 0;
 
     @FXML
@@ -51,21 +50,14 @@ public class CatalogoController {
     }
     
     private void inicializarProductos() {
-
-        productosDisponibles.agregar(new Producto(1, "Chaqueta Nova LayerWind", 299900, "Chaqueta resistente al viento con capucha desmontable"));
-        productosDisponibles.agregar(new Producto(2, "Pantalón Cargo StreetFlex 2.0", 189900, "Pantalones cargo con múltiples bolsillos y ajuste moderno"));
-        productosDisponibles.agregar(new Producto(3, "Jogger SoftFlex Premium", 159900, "Pantalones jogger en algodón elástico para máxima comodidad"));
-        productosDisponibles.agregar(new Producto(4, "Camiseta Essential Cotton", 49900, "Camiseta básica 100% algodón, disponible en varios colores"));
-        productosDisponibles.agregar(new Producto(5, "Sudadera Oversize Urban", 179900, "Sudadera con capucha y corte oversize"));
-        productosDisponibles.agregar(new Producto(6, "Zapatillas UrbanWalk Pro", 349900, "Zapatillas deportivas con soporte para caminata"));
-        productosDisponibles.agregar(new Producto(7, "Gorra Snapback Classic", 45900, "Gorra ajustable con diseño urbano"));
-        productosDisponibles.agregar(new Producto(8, "Chaleco Térmico HeatTech", 219900, "Chaleco fino con tecnología de aislamiento térmico"));
-        productosDisponibles.agregar(new Producto(9, "Polo SportFit", 89900, "Polo de manga corta con tecnología de secado rápido"));
-        productosDisponibles.agregar(new Producto(10, "Shorts Running Flex", 129900, "Shorts deportivos con bolsillo para celular"));
-        productosDisponibles.agregar(new Producto(11, "Camisa Lino Essential", 149900, "Camisa de lino para looks casuales de verano"));
-        productosDisponibles.agregar(new Producto(12, "Cinturón Cuero Premium", 99900, "Cinturón de cuero genuino con hebilla metálica"));
+        // Obtener los productos del servicio
+        List<Producto> productos = productoService.obtenerTodosLosProductos();
         
-
+        // Agregar los productos a la lista doblemente enlazada
+        for (Producto producto : productos) {
+            productosDisponibles.agregar(producto);
+        }
+        
         productosDisponibles.irAlPrimero();
     }
     
@@ -105,10 +97,96 @@ public class CatalogoController {
     }
 
     private VBox crearTarjetaProducto(Producto producto) {
-        Rectangle img = new Rectangle(280, 360);
-        img.setArcWidth(16);
-        img.setArcHeight(16);
-        img.setStyle("-fx-fill: linear-gradient(to bottom, #222, #111);");
+        // Crear un contenedor para la imagen
+        StackPane imgContainer = new StackPane();
+        imgContainer.setMinSize(280, 360);
+        imgContainer.setMaxSize(280, 360);
+        
+        // Crear un rectángulo como fondo/placeholder
+        Rectangle placeholder = new Rectangle(280, 360);
+        placeholder.setArcWidth(16);
+        placeholder.setArcHeight(16);
+        placeholder.setStyle("-fx-fill: linear-gradient(to bottom, #222, #111);");
+        
+        // Crear el ImageView para la imagen del producto
+        ImageView imgView = new ImageView();
+        imgView.setFitWidth(280);
+        imgView.setFitHeight(360);
+        imgView.setPreserveRatio(true);
+        
+        // Intentar cargar la imagen del producto
+        try {
+            // Formatear el nombre del archivo de imagen según la convención
+            // Mapeo de nombres de productos a nombres de archivo
+            String nombreArchivo;
+            String nombreProducto = producto.getNombre().toLowerCase();
+            
+            // Casos especiales
+            if (nombreProducto.contains("atticus")) {
+                nombreArchivo = "atticus.png";
+            } else if (nombreProducto.contains("enzo")) {
+                nombreArchivo = "enzowhiteblueed.png";
+            } else if (nombreProducto.contains("hygiea")) {
+                nombreArchivo = "hygiea.png";
+            } else if (nombreProducto.contains("classic cap")) {
+                nombreArchivo = "classiccap.png";
+            } else if (nombreProducto.contains("gringnani")) {
+                nombreArchivo = "gringnaniblackcap.png";
+            } else if (nombreProducto.contains("lrn victoria top grey")) {
+                nombreArchivo = "lrnvictoriatopgrey.png";
+            } else if (nombreProducto.contains("lrn victoria top black")) {
+                nombreArchivo = "lrnvictoriatopblack.png";
+            } else {
+                // Para el resto, usar la lógica original pero más simple
+                nombreArchivo = nombreProducto
+                    .replace(" | ", "")
+                    .replace(" ", "")
+                    .replace("/", "")
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace("|", "")
+                    + ".png";
+            }
+                
+            // Usando la ruta completa desde src/main/resources
+            String imagePath = "/org/example/tiendav2/images/productos/" + nombreArchivo;
+            
+            // Depuración: Mostrar la ruta completa que se está intentando cargar
+            System.out.println("Intentando cargar: " + imagePath);
+            
+            // Verificar si el recurso existe
+            java.net.URL imgUrl = getClass().getResource(imagePath);
+            System.out.println("URL del recurso: " + imgUrl);
+            
+            java.io.InputStream inputStream = getClass().getResourceAsStream(imagePath);
+            if (inputStream == null) {
+                System.err.println("No se encontró la imagen: " + imagePath);
+                System.err.println("Ruta absoluta del recurso: " + 
+                    (imgUrl != null ? imgUrl.toExternalForm() : "null"));
+                throw new Exception("Imagen no encontrada: " + imagePath);
+            }
+            
+            // Cargar la imagen
+            Image imagen = new Image(inputStream);
+            if (imagen.isError()) {
+                throw new Exception("Error al cargar la imagen: " + imagen.getException().getMessage());
+            }
+            
+            imgView.setImage(imagen);
+            imgContainer.getChildren().add(imgView);
+            
+        } catch (Exception e) {
+            // Si hay un error, mostramos el placeholder con un mensaje
+            System.err.println("No se pudo cargar la imagen para: " + producto.getNombre());
+            System.err.println("Error: " + e.getMessage());
+            
+            Label placeholderText = new Label("Imagen no disponible\n" + producto.getNombre());
+            placeholderText.setTextFill(Color.WHITE);
+            placeholderText.setStyle("-fx-text-alignment: center; -fx-font-size: 14px;");
+            
+            imgContainer.getChildren().addAll(placeholder, placeholderText);
+            StackPane.setAlignment(placeholderText, Pos.CENTER);
+        }
 
         Label name = new Label(producto.getNombre());
         name.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
@@ -151,7 +229,7 @@ public class CatalogoController {
 
         btnAgregar.setOnAction(e -> agregarAlCarrito(producto));
 
-        VBox box = new VBox(12, img, name, price, btnAgregar);
+        VBox box = new VBox(12, imgContainer, name, price, btnAgregar);
         box.setPadding(new Insets(16));
         box.setStyle(
             "-fx-background-color: #1a1a1a; " +

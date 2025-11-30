@@ -17,18 +17,40 @@ public class ProductoService {
     }
 
     private void inicializarDatosEjemplo() {
-        agregarProducto("Chaqueta Nova LayerWind", 299900, "Chaqueta resistente al viento con capucha desmontable");
-        agregarProducto("Pantalón Cargo StreetFlex 2.0", 189900, "Pantalones cargo con múltiples bolsillos y ajuste moderno");
-        agregarProducto("Jogger SoftFlex Premium", 159900, "Pantalones jogger en algodón elástico para máxima comodidad");
-        agregarProducto("Camiseta Essential Cotton", 49900, "Camiseta básica 100% algodón, disponible en varios colores");
-        agregarProducto("Sudadera Oversize Urban", 179900, "Sudadera con capucha y corte oversize");
-        agregarProducto("Zapatillas UrbanWalk Pro", 349900, "Zapatillas deportivas con soporte para caminata");
-        agregarProducto("Gorra Snapback Classic", 45900, "Gorra ajustable con diseño urbano");
-        agregarProducto("Chaleco Térmico HeatTech", 219900, "Chaleco fino con tecnología de aislamiento térmico");
-        agregarProducto("Polo SportFit", 89900, "Polo de manga corta con tecnología de secado rápido");
-        agregarProducto("Shorts Running Flex", 129900, "Shorts deportivos con bolsillo para celular");
-        agregarProducto("Camisa Lino Essential", 149900, "Camisa de lino para looks casuales de verano");
-        agregarProducto("Cinturón Cuero Premium", 99900, "Cinturón de cuero genuino con hebilla metálica");
+        // ======= T-SHIRTS =======
+        agregarProducto("ATTICUS | Black", 190000, "Camiseta ATTICUS en color negro");
+        agregarProducto("Icon | Black", 220000, "Camiseta Icon en color negro");
+        agregarProducto("Triple Icon | Green", 220000, "Camiseta Triple Icon en color verde");
+        agregarProducto("LRN BLUE COIN", 220000, "Camiseta LRN BLUE COIN");
+        agregarProducto("Icon | [RED]", 220000, "Camiseta Icon en color rojo");
+        agregarProducto("Triple Icon | White", 160000, "Camiseta Triple Icon en color blanco");
+        agregarProducto("LRN LUNA", 265000, "Camiseta LRN LUNA");
+        agregarProducto("LRN RED WAX LABEL", 220000, "Camiseta LRN RED WAX LABEL");
+        agregarProducto("Hygiea | Beige", 190000, "Camiseta Hygiea en color beige");
+        agregarProducto("Cong | Green", 190000, "Camiseta Cong en color verde");
+        agregarProducto("Garly | Black", 190000, "Camiseta Garly en color negro");
+        agregarProducto("LRN MUNDO", 265000, "Camiseta LRN MUNDO");
+        agregarProducto("Enzo | White / Blue Edition", 190000, "Camiseta Enzo en edición blanca/azul");
+
+        // ======= CROP TOPS =======
+        agregarProducto("LRN | VICTORIA | TOP | GREY", 99900, "Crop top LRN VICTORIA GRIS");
+        agregarProducto("LRN | VICTORIA | TOP | BLACK", 99900, "Crop top LRN VICTORIA NEGRO");
+
+        // ======= CAPS =======
+        agregarProducto("LRR SHADOW EDITION", 195000, "Gorra LRR SHADOW EDITION");
+        agregarProducto("LRN BLACK STAR", 195000, "Gorra LRN BLACK STAR");
+        agregarProducto("LRN PINK BOLD", 195000, "Gorra LRN PINK BOLD");
+        agregarProducto("LRN CLASIC", 195000, "Gorra LRN CLASIC");
+        agregarProducto("LRN PURPLE NIGHT", 195000, "Gorra LRN PURPLE NIGHT");
+        agregarProducto("LRN OLIVE ALPINE", 195000, "Gorra LRN OLIVE ALPINE");
+        agregarProducto("LRN RED SUPREME", 195000, "Gorra LRN RED SUPREME");
+        agregarProducto("LRN MONOGRAM CAP", 175000, "Gorra LRN MONOGRAM CAP");
+        agregarProducto("LRN DANTE WHITE CAP", 175000, "Gorra LRN DANTE WHITE CAP");
+        agregarProducto("LRN VANTINO", 180000, "Gorra LRN VANTINO");
+        agregarProducto("LRN FILO BLACK", 195000, "Gorra LRN FILO BLACK");
+        agregarProducto("CLASSIC CAP", 180000, "Gorra CLASSIC CAP");
+        agregarProducto("Icon Red Cap", 180000, "Gorra Icon Red");
+        agregarProducto("Gringnani Black Cap", 180000, "Gorra Gringnani Black");
     }
 
     public Producto agregarProducto(String nombre, double precio, String descripcion) {

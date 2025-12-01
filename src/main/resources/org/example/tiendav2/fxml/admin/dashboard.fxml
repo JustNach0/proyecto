@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.tiendav2.controller.admin.AdminDashboardController">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="Archivo">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#handleCerrarSesion" text="Cerrar Sesión" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Administración">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#handleGestionUsuarios" text="Gestión de Usuarios" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleGestionProductos" text="Gestión de Productos" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleReportes" text="Reportes" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #f4f4f4;">
+         <children>
+            <Label layoutX="20.0" layoutY="20.0" text="Panel de Administración" textFill="#2c3e50">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <Label layoutX="20.0" layoutY="60.0" text="Bienvenido, " textFill="#34495e">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Label fx:id="lblNombreUsuario" layoutX="120.0" layoutY="60.0" textFill="#3498db" style="-fx-font-weight: bold;">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Label layoutX="20.0" layoutY="90.0" text="Rol: " textFill="#34495e">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Label fx:id="lblRol" layoutX="60.0" layoutY="90.0" textFill="#e67e22" text="Administrador" style="-fx-font-weight: bold;">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Separator layoutX="20.0" layoutY="130.0" prefHeight="2.0" prefWidth="960.0" />
+         </children>
+      </Pane>
+      <StackPane fx:id="contentArea" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #ffffff;" VBox.vgrow="ALWAYS" />
+   </children>
+   <!-- Styles moved inline to avoid loading issues -->
+</VBox>

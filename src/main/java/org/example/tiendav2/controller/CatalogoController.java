@@ -1,10 +1,14 @@
 package org.example.tiendav2.controller;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.image.Image;
@@ -12,10 +16,18 @@ import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
+import javafx.application.Platform;
 import javafx.util.Duration;
+import java.io.IOException;
 import org.example.tiendav2.model.Carrito;
 import org.example.tiendav2.model.ListaDoblementeEnlazada;
-import org.example.tiendav2.model.Pedido;
+import org.example.tiendav2.model.*;
+import org.example.tiendav2.service.HistorialService;
+import org.example.tiendav2.service.ListaDeseosService;
 import org.example.tiendav2.model.Producto;
 import org.example.tiendav2.service.PedidoService;
 import org.example.tiendav2.service.ProductoService;
@@ -30,6 +42,10 @@ public class CatalogoController {
     @FXML
     private Label contadorCarrito;
     @FXML
+    private Label contadorListaDeseos;
+    @FXML
+    private Label contadorItems;
+    @FXML
     private VBox carritoContenido;
     @FXML
     private ScrollPane scrollCarrito;
@@ -40,13 +56,44 @@ public class CatalogoController {
     private final PedidoService pedidoService = PedidoService.getInstancia();
     private final ListaDoblementeEnlazada<Producto> productosDisponibles = new ListaDoblementeEnlazada<>();
     private final ProductoService productoService = new ProductoService();
+    private final ListaDeseosService listaDeseosService = ListaDeseosService.getInstancia();
+    private final HistorialService historialService = HistorialService.getInstancia();
     private int productoActualIndex = 0;
 
+    @FXML
+    private StackPane btnCarrito;
+    @FXML
+    private VBox panelCarrito;
+    
     @FXML
     private void initialize() {
         inicializarProductos();
         mostrarProductos();
         actualizarVistaCarrito();
+        actualizarContadorListaDeseos();
+        
+        // Configurar el evento de clic para el botón del carrito
+        btnCarrito.setOnMouseClicked(e -> toggleCarrito());
+    }
+    
+    /**
+     * Muestra u oculta el panel del carrito
+     */
+    private void toggleCarrito() {
+        boolean isVisible = panelCarrito.isVisible();
+        panelCarrito.setVisible(!isVisible);
+        
+        // Aplicar una animación suave
+        FadeTransition ft = new FadeTransition(Duration.millis(200), panelCarrito);
+        ft.setFromValue(isVisible ? 1.0 : 0.0);
+        ft.setToValue(isVisible ? 0.0 : 1.0);
+        
+        if (!isVisible) {
+            panelCarrito.setVisible(true);
+            panelCarrito.setOpacity(0);
+        }
+        
+        ft.play();
     }
     
     private void inicializarProductos() {
@@ -99,6 +146,57 @@ public class CatalogoController {
     private VBox crearTarjetaProducto(Producto producto) {
         // Crear un contenedor para la imagen
         StackPane imgContainer = new StackPane();
+        
+        // Botón de lista de deseos - Mejorado para mejor visibilidad
+        Button btnListaDeseos = new Button("❤");
+        btnListaDeseos.setStyle(
+            "-fx-background-color: rgba(255,255,255,0.9); " +
+            "-fx-text-fill: #ff4444; " +
+            "-fx-font-size: 18px; " +
+            "-fx-min-width: 40px; " +
+            "-fx-min-height: 40px; " +
+            "-fx-background-radius: 20px; " +
+            "-fx-cursor: hand;"
+        );
+        
+        // Efecto hover para mejor feedback visual
+        btnListaDeseos.setOnMouseEntered(e -> {
+            btnListaDeseos.setStyle(
+                "-fx-background-color: #ff4444; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 20px; " +
+                "-fx-min-width: 40px; " +
+                "-fx-min-height: 40px; " +
+                "-fx-background-radius: 20px; " +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);"
+            );
+        });
+        
+        btnListaDeseos.setOnMouseExited(e -> {
+            btnListaDeseos.setStyle(
+                "-fx-background-color: rgba(255,255,255,0.9); " +
+                "-fx-text-fill: #ff4444; " +
+                "-fx-font-size: 18px; " +
+                "-fx-min-width: 40px; " +
+                "-fx-min-height: 40px; " +
+                "-fx-background-radius: 20px;"
+            );
+        });
+        
+        btnListaDeseos.setOnAction(e -> {
+            agregarAListaDeseos(producto);
+            // Efecto de escala al hacer clic
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), btnListaDeseos);
+            st.setFromX(1.0);
+            st.setFromY(1.0);
+            st.setToX(1.3);
+            st.setToY(1.3);
+            st.setAutoReverse(true);
+            st.setCycleCount(2);
+            st.play();
+        });
+        
+        // Configurar el contenedor de la imagen
         imgContainer.setMinSize(280, 360);
         imgContainer.setMaxSize(280, 360);
         
@@ -174,6 +272,12 @@ public class CatalogoController {
             
             imgView.setImage(imagen);
             imgContainer.getChildren().add(imgView);
+            
+            // Agregar el botón de lista de deseos después de la imagen
+            imgContainer.getChildren().add(btnListaDeseos);
+            btnListaDeseos.toFront(); // Asegurar que esté en la parte superior
+            StackPane.setAlignment(btnListaDeseos, Pos.TOP_RIGHT);
+            StackPane.setMargin(btnListaDeseos, new Insets(15, 15, 0, 0));
             
         } catch (Exception e) {
             // Si hay un error, mostramos el placeholder con un mensaje
@@ -258,30 +362,80 @@ public class CatalogoController {
     }
     
     /**
+     * Agrega un producto a la lista de deseos, actualiza el contador y muestra una notificación
+     */
+    private void agregarAListaDeseos(Producto producto) {
+        if (producto == null) {
+            System.out.println("Error: Producto nulo al intentar agregar a lista de deseos");
+            return;
+        }
+        
+        System.out.println("Intentando agregar producto a lista de deseos: " + producto.getNombre());
+        int usuarioId = 1; // ID del usuario actual (deberías obtenerlo de la sesión)
+        
+        try {
+            boolean exito = listaDeseosService.agregarAListaDeseos(usuarioId, producto.getId());
+            
+            if (exito) {
+                System.out.println("Producto agregado exitosamente a la lista de deseos");
+                mostrarNotificacion("❤ " + producto.getNombre() + " agregado a la lista de deseos");
+                // Actualizar el contador de la lista de deseos
+                actualizarContadorListaDeseos();
+            } else {
+                System.out.println("No se pudo agregar el producto a la lista de deseos");
+                mostrarNotificacion("✗ No se pudo agregar el producto a la lista de deseos");
+            }
+        } catch (Exception e) {
+            System.err.println("Error al agregar a lista de deseos: " + e.getMessage());
+            e.printStackTrace();
+            mostrarNotificacion("✗ Error al agregar a la lista de deseos");
+        }
+    }
+    
+    /**
      * Muestra una notificación temporal en la esquina inferior derecha
      */
     private void mostrarNotificacion(String mensaje) {
-        Label notificacion = new Label(mensaje);
-        notificacion.setStyle(
-            "-fx-background-color: rgba(0, 0, 0, 0.8);" +
-            "-fx-text-fill: white;" +
-            "-fx-padding: 10px 15px;" +
-            "-fx-background-radius: 5px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);"
-        );
-        
-        StackPane root = (StackPane) grid.getScene().getRoot();
-        StackPane.setAlignment(notificacion, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(notificacion, new Insets(0, 20, 20, 0));
-        
-        root.getChildren().add(notificacion);
-        
-        // Animación de desvanecimiento
-        FadeTransition ft = new FadeTransition(Duration.millis(3000), notificacion);
-        ft.setFromValue(1.0);
-        ft.setToValue(0.0);
-        ft.setOnFinished(e -> root.getChildren().remove(notificacion));
-        ft.play();
+        try {
+            Label notificacion = new Label(mensaje);
+            notificacion.setStyle(
+                "-fx-background-color: rgba(0, 0, 0, 0.8);" +
+                "-fx-text-fill: white;" +
+                "-fx-padding: 10px 15px;" +
+                "-fx-background-radius: 5px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);"
+            );
+            
+            // Obtener el nodo raíz de la escena
+            Parent root = grid.getScene().getRoot();
+            
+            // Crear una ventana emergente para la notificación
+            Stage popup = new Stage();
+            popup.initStyle(StageStyle.UNDECORATED);
+            popup.initModality(Modality.NONE);
+            
+            StackPane popupContent = new StackPane(notificacion);
+            popupContent.setStyle("-fx-background-color: transparent;");
+            
+            Scene scene = new Scene(popupContent);
+            scene.setFill(Color.TRANSPARENT);
+            popup.setScene(scene);
+            
+            // Posicionar en la esquina inferior derecha
+            Window window = grid.getScene().getWindow();
+            popup.setX(window.getX() + window.getWidth() - 320);
+            popup.setY(window.getY() + window.getHeight() - 120);
+            
+            popup.show();
+            
+            // Cerrar después de 3 segundos
+            PauseTransition delay = new PauseTransition(Duration.seconds(3));
+            delay.setOnFinished(e -> popup.close());
+            delay.play();
+        } catch (Exception e) {
+            System.err.println("Error al mostrar notificación: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -419,6 +573,72 @@ public class CatalogoController {
         int cantidad = carrito.getCantidadProductos();
         contadorCarrito.setText(String.valueOf(cantidad));
         contadorCarrito.setVisible(cantidad > 0);
+        
+        // Actualizar el contador de items en el panel del carrito
+        String textoItems = cantidad == 1 ? "(1 item)" : "(" + cantidad + " items)";
+        contadorItems.setText(textoItems);
+    }
+    
+    private void actualizarContadorListaDeseos() {
+        try {
+            int usuarioId = 1; // ID del usuario actual
+            System.out.println("Actualizando contador de lista de deseos para usuario: " + usuarioId);
+            
+            ListaDeseos listaDeseos = listaDeseosService.obtenerListaDeseos(usuarioId);
+            int cantidad = listaDeseos.getCantidadProductos();
+            
+            System.out.println("Cantidad de productos en lista de deseos: " + cantidad);
+            
+            // Asegurarse de que estamos en el hilo de la interfaz de usuario
+            if (contadorListaDeseos != null) {
+                Platform.runLater(() -> {
+                    contadorListaDeseos.setText(String.valueOf(cantidad));
+                    contadorListaDeseos.setVisible(cantidad > 0);
+                    System.out.println("Contador actualizado en la UI: " + cantidad);
+                });
+            } else {
+                System.err.println("Error: contadorListaDeseos es nulo");
+            }
+        } catch (Exception e) {
+            System.err.println("Error al actualizar contador de lista de deseos: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    @FXML
+    private void mostrarListaDeseos() {
+        try {
+            // Verificar que el recurso existe
+            java.net.URL url = getClass().getResource("/org/example/tiendav2/fxml/ListaDeseosView.fxml");
+            if (url == null) {
+                throw new IOException("No se pudo encontrar el archivo FXML");
+            }
+            
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent root = loader.load();
+            
+            // Obtener el controlador y configurar el callback para agregar al carrito
+            ListaDeseosController controller = loader.getController();
+            controller.setOnAgregarAlCarrito(producto -> {
+                // Usar el método existente para agregar al carrito
+                agregarAlCarrito(producto);
+                // Actualizar el contador del carrito
+                actualizarContadorCarrito();
+            });
+            
+            Stage stage = new Stage();
+            stage.setTitle("Mi Lista de Deseos");
+            stage.setScene(new Scene(root, 800, 600));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+            
+            // Actualizar el contador después de cerrar la ventana
+            actualizarContadorListaDeseos();
+        } catch (Exception e) {
+            System.err.println("Error al cargar la lista de deseos:");
+            e.printStackTrace();
+            mostrarAlerta("Error", "No se pudo cargar la lista de deseos: " + e.getMessage());
+        }
     }
 
     @FXML

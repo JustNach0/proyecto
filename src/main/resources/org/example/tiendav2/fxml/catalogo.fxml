@@ -29,13 +29,30 @@
 
             <HBox spacing="16" alignment="CENTER">
                 <Label text="Buscar" style="-fx-text-fill: #8a8a8a;" />
-                <Label text="Cuenta" style="-fx-text-fill: #8a8a8a;" />
+                <Label text="Cuenta" style="fx-text-fill: #8a8a8a;" />
+
+                <!-- BOTÓN DE LISTA DE DESEOS -->
+                <StackPane fx:id="btnListaDeseos" style="-fx-cursor: hand; -fx-padding: 0 10 0 0;" onMouseClicked="#mostrarListaDeseos">
+                    <Label text="❤" style="-fx-text-fill: #8a8a8a; -fx-font-size: 16px;" />
+                    
+                    <!-- Contador de items en la lista de deseos -->
+                    <Label fx:id="contadorListaDeseos"
+                           text="0"
+                           visible="false"
+                           style="-fx-background-color: #00ff8a; -fx-text-fill: #0d0d0d; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 20;"
+                           StackPane.alignment="TOP_RIGHT"
+                           minWidth="16" minHeight="16">
+                        <padding>
+                            <Insets top="1" right="3" bottom="1" left="3"/>
+                        </padding>
+                    </Label>
+                </StackPane>
 
                 <!-- BOTÓN DEL CARRITO -->
                 <StackPane fx:id="btnCarrito" style="-fx-cursor: hand;">
                     <Label text="Carrito" style="-fx-text-fill: #8a8a8a;" />
 
-                    <!-- Burbuja -->
+                    <!-- Burbuja del contador -->
                     <Label fx:id="contadorCarrito"
                            text="0"
                            visible="false"

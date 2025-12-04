@@ -3,6 +3,7 @@ package org.example.tiendav2.controller;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -10,30 +11,32 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import javafx.application.Platform;
 import javafx.util.Duration;
-import java.io.IOException;
 import org.example.tiendav2.model.Carrito;
 import org.example.tiendav2.model.ListaDoblementeEnlazada;
-import org.example.tiendav2.model.*;
+import org.example.tiendav2.model.ListaDeseos;
+import org.example.tiendav2.model.Pedido;
+import org.example.tiendav2.model.Producto;
 import org.example.tiendav2.service.HistorialService;
 import org.example.tiendav2.service.ListaDeseosService;
-import org.example.tiendav2.model.Producto;
 import org.example.tiendav2.service.PedidoService;
 import org.example.tiendav2.service.ProductoService;
-
-import java.util.Optional;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 public class CatalogoController {
 
@@ -55,6 +58,7 @@ public class CatalogoController {
     private final Carrito carrito = new Carrito(1); // Asumiendo que el ID de usuario es 1 por ahora
     private final PedidoService pedidoService = PedidoService.getInstancia();
     private final ListaDoblementeEnlazada<Producto> productosDisponibles = new ListaDoblementeEnlazada<>();
+    private ListaDoblementeEnlazada<Producto> productosFiltrados = new ListaDoblementeEnlazada<>();
     private final ProductoService productoService = new ProductoService();
     private final ListaDeseosService listaDeseosService = ListaDeseosService.getInstancia();
     private final HistorialService historialService = HistorialService.getInstancia();
@@ -64,6 +68,19 @@ public class CatalogoController {
     private StackPane btnCarrito;
     @FXML
     private VBox panelCarrito;
+    
+    @FXML
+    private VBox navegacionDetallada;
+    @FXML
+    private Label nombreProductoDetallado;
+    @FXML
+    private Label precioProductoDetallado;
+    @FXML
+    private Label descripcionProductoDetallado;
+    @FXML
+    private ImageView imagenProductoDetallado;
+    
+    private Producto productoActualDetallado;
     
     @FXML
     private void initialize() {
@@ -108,38 +125,142 @@ public class CatalogoController {
         productosDisponibles.irAlPrimero();
     }
     
+    @FXML
+    private void productoAnterior() {
+        if (productosDisponibles.anterior()) {
+            mostrarProductoDetallado(productosDisponibles.obtenerActual());
+        } else {
+            // Si no hay anterior, ir al último
+            productosDisponibles.irAlUltimo();
+            mostrarProductoDetallado(productosDisponibles.obtenerActual());
+        }
+    }
+    
+    @FXML
+    private void productoSiguiente() {
+        if (productosDisponibles.siguiente()) {
+            mostrarProductoDetallado(productosDisponibles.obtenerActual());
+        } else {
+            // Si no hay siguiente, volver al primero
+            productosDisponibles.irAlPrimero();
+            mostrarProductoDetallado(productosDisponibles.obtenerActual());
+        }
+    }
+    
+    @FXML
+    private void activarModoNavegacion() {
+        grid.setVisible(false);
+        navegacionDetallada.setVisible(true);
+        
+        // Mostrar el primer producto
+        if (productosDisponibles.tamaño() > 0) {
+            productosDisponibles.irAlPrimero();
+            mostrarProductoDetallado(productosDisponibles.obtenerActual());
+        }
+        mostrarNotificacion("Modo de navegación detallada activado");
+    }
+    
+    @FXML
+    private void desactivarModoNavegacion() {
+        navegacionDetallada.setVisible(false);
+        grid.setVisible(true);
+        mostrarNotificacion("Vista de cuadrícula activada");
+    }
+    
+    private void mostrarProductoDetallado(Producto producto) {
+        if (producto == null) return;
+        
+        productoActualDetallado = producto;
+        nombreProductoDetallado.setText(producto.getNombre());
+        precioProductoDetallado.setText(String.format("$%,d", (int)producto.getPrecio()));
+        descripcionProductoDetallado.setText(obtenerDescripcionProducto(producto));
+        
+        // Cargar la imagen del producto
+        try {
+            // Formatear el nombre del archivo de imagen según la convención
+            // Mapeo de nombres de productos a nombres de archivo
+            String nombreArchivo = producto.getNombre().toLowerCase()
+                .replace(" ", "")
+                .replace("|", "")
+                .replace("[", "")
+                .replace("]", "")
+                .replace("/", "")
+                .replace(" ", "") + ".png";
+                
+            String imagePath = "/org/example/tiendav2/images/productos/" + nombreArchivo;
+            
+            Image imagen = new Image(getClass().getResourceAsStream(imagePath));
+            
+            if (imagen.isError()) {
+                throw new Exception("Error al cargar la imagen");
+            }
+            
+            imagenProductoDetallado.setImage(imagen);
+            imagenProductoDetallado.setFitWidth(500);
+            imagenProductoDetallado.setPreserveRatio(true);
+            
+        } catch (Exception e) {
+            System.err.println("Error al cargar la imagen: " + e.getMessage());
+            // Usar una imagen por defecto
+            imagenProductoDetallado.setImage(new Image("/org/example/tiendav2/images/placeholder.png"));
+        }
+    }
+    
+    private String obtenerDescripcionProducto(Producto producto) {
+        // Aquí puedes personalizar la descripción según el producto
+        // Por ahora, devolvemos la descripción genérica
+        return producto.getDescripcion() + "\n\nTalla única. Envíos a todo el país.";
+    }
+    
+    @FXML
+    private void agregarAlCarritoDesdeDetalle() {
+        if (productoActualDetallado != null) {
+            agregarAlCarrito(productoActualDetallado);
+        }
+    }
+    
+    @FXML
+    private void agregarAListaDeseosDesdeDetalle() {
+        if (productoActualDetallado != null) {
+            agregarAListaDeseos(productoActualDetallado);
+        }
+    }
+    
     private void mostrarProductos() {
-
         grid.getChildren().clear();
         
-
         int columnas = 3;
         int fila = 0;
         int columna = 0;
         
-
-        Producto productoActual = productosDisponibles.obtenerActual();
+        // Use the filtered list if it has items, otherwise use the full list
+        ListaDoblementeEnlazada<Producto> listaAMostrar = 
+            (productosFiltrados.tamaño() > 0) ? productosFiltrados : productosDisponibles;
+            
+        Producto productoActual = listaAMostrar.obtenerActual();
         
+        listaAMostrar.irAlPrimero();
 
-        productosDisponibles.irAlPrimero();
+        for (int i = 0; i < listaAMostrar.tamaño(); i++) {
+            Producto producto = listaAMostrar.obtenerActual();
+            if (producto != null) {
+                VBox tarjeta = crearTarjetaProducto(producto);
+                grid.add(tarjeta, columna, fila);
 
-        for (int i = 0; i < productosDisponibles.tamaño(); i++) {
-            Producto producto = productosDisponibles.obtenerActual();
-            VBox tarjeta = crearTarjetaProducto(producto);
-
-            grid.add(tarjeta, columna, fila);
-
-            productosDisponibles.siguiente();
-
-            columna++;
-            if (columna == columnas) {
-                columna = 0;
-                fila++;
+                columna++;
+                if (columna == columnas) {
+                    columna = 0;
+                    fila++;
+                }
+            }
+            
+            if (!listaAMostrar.siguiente()) {
+                break; // In case there's an issue with the list
             }
         }
 
         if (productoActual != null) {
-            productosDisponibles.buscar(productoActual);
+            listaAMostrar.buscar(productoActual);
         }
     }
 
@@ -374,6 +495,7 @@ public class CatalogoController {
         int usuarioId = 1; // ID del usuario actual (deberías obtenerlo de la sesión)
         
         try {
+            // Crear el pedido
             boolean exito = listaDeseosService.agregarAListaDeseos(usuarioId, producto.getId());
             
             if (exito) {
@@ -494,6 +616,43 @@ public class CatalogoController {
         return item;
     }
     
+    /**
+     * Actualiza el contador visual del carrito con la cantidad de productos.
+     */
+    private void actualizarContadorCarrito() {
+        if (contadorCarrito != null) {
+            contadorCarrito.setText(String.valueOf(carrito.getCantidadProductos()));
+        }
+    }
+
+    /**
+     * Actualiza el contador visual de la lista de deseos para el usuario actual.
+     */
+    private void actualizarContadorListaDeseos() {
+        try {
+            int usuarioId = 1;
+            ListaDeseos lista = listaDeseosService.obtenerListaDeseos(usuarioId);
+            int cantidad = (lista != null) ? lista.getCantidadProductos() : 0;
+            if (contadorListaDeseos != null) {
+                contadorListaDeseos.setText(String.valueOf(cantidad));
+            }
+        } catch (Exception e) {
+            System.err.println("Error al actualizar contador de lista de deseos: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Aplica una animación suave al hacer hover sobre las tarjetas de producto.
+     */
+    private void animarHover(VBox box, boolean hover) {
+        if (box == null) return;
+
+        double toScale = hover ? 1.03 : 1.0;
+        ScaleTransition st = new ScaleTransition(Duration.millis(150), box);
+        st.setToX(toScale);
+        st.setToY(toScale);
+        st.play();
+    }
 
     @FXML
     private void finalizarCompra() {
@@ -502,50 +661,44 @@ public class CatalogoController {
             return;
         }
 
-        // Mostrar diálogo para ingresar dirección de envío
-        TextInputDialog direccionDialog = new TextInputDialog("Calle Falsa 123");
-        direccionDialog.setTitle("Dirección de envío");
-        direccionDialog.setHeaderText("Ingrese la dirección de envío");
-        direccionDialog.setContentText("Dirección:");
-
-        Optional<String> direccionResult = direccionDialog.showAndWait();
-        if (direccionResult.isEmpty() || direccionResult.get().trim().isEmpty()) {
-            return;
-        }
-        String direccion = direccionResult.get();
-
-        // Mostrar diálogo para seleccionar método de pago
-        ChoiceDialog<String> pagoDialog = new ChoiceDialog<>("Tarjeta de crédito", 
-            "Tarjeta de crédito", "PayPal", "Transferencia bancaria");
-        pagoDialog.setTitle("Método de pago");
-        pagoDialog.setHeaderText("Seleccione el método de pago");
-        pagoDialog.setContentText("Método de pago:");
-
-        Optional<String> pagoResult = pagoDialog.showAndWait();
-        if (pagoResult.isEmpty()) {
-            return;
-        }
-        String metodoPago = pagoResult.get();
-
         try {
+            // Cargar el diálogo personalizado
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/tiendav2/fxml/dialogo-finalizar-compra.fxml"));
+            Parent root = loader.load();
+            
+            // Obtener el controlador y pasar datos del carrito
+            DialogoFinalizarCompraController dialogoController = loader.getController();
+            dialogoController.setDatosCarrito(carrito);
+            
+            // Crear y mostrar el diálogo
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Finalizar Compra");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(new Scene(root));
+            dialogStage.setResizable(false);
+            dialogStage.showAndWait();
+            
+            // Verificar si se confirmó la compra
+            if (!dialogoController.isConfirmado()) {
+                return; // Usuario canceló
+            }
+            
+            String direccion = dialogoController.getDireccion();
+            String metodoPago = dialogoController.getMetodoPago();
+            
+            if (!validarDatosCompra(carrito, direccion, metodoPago)) {
+                return;
+            }
+
             // Crear el pedido
             Pedido pedido = pedidoService.crearPedido(carrito, direccion, metodoPago);
+            if (pedido == null) {
+                mostrarAlerta("Error", "No se pudo crear el pedido. Verifica los datos ingresados.");
+                return;
+            }
             
-            // Mostrar confirmación
-            Alert confirmacion = new Alert(Alert.AlertType.INFORMATION);
-            confirmacion.setTitle("Compra exitosa");
-            confirmacion.setHeaderText("¡Gracias por tu compra!");
-            confirmacion.setContentText(String.format(
-                "Pedido #%d realizado con éxito.\n" +
-                "Total: $%,.2f\n" +
-                "Dirección de envío: %s\n" +
-                "Método de pago: %s",
-                pedido.getId(), 
-                pedido.getTotal(), 
-                direccion, 
-                metodoPago
-            ));
-            confirmacion.showAndWait();
+            // Mostrar confirmación con diálogo personalizado
+            mostrarConfirmacionCompra(pedido, direccion, metodoPago);
             
             // Limpiar el carrito después de la compra
             carrito.vaciarCarrito();
@@ -554,8 +707,49 @@ public class CatalogoController {
             // Mostrar estado de la cola de pedidos
             pedidoService.mostrarEstadoCola();
             
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta("Error", "No se pudo abrir el dialogo de compra: " + e.getMessage());
         } catch (Exception e) {
+            e.printStackTrace();
             mostrarAlerta("Error", "Ocurrió un error al procesar el pedido: " + e.getMessage());
+        }
+    }
+    
+    private void mostrarConfirmacionCompra(Pedido pedido, String direccion, String metodoPago) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/tiendav2/fxml/dialogo-confirmacion-compra.fxml"));
+            Parent root = loader.load();
+            
+            // Pasar datos al controlador de confirmación
+            var controller = loader.getController();
+            if (controller instanceof DialogoConfirmacionCompraController) {
+                ((DialogoConfirmacionCompraController) controller).setDatosPedido(pedido, direccion, metodoPago);
+            }
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Compra Exitosa");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(new Scene(root));
+            dialogStage.setResizable(false);
+            dialogStage.showAndWait();
+            
+        } catch (IOException e) {
+            // Si falla el diálogo personalizado, usar uno básico
+            Alert confirmacion = new Alert(Alert.AlertType.INFORMATION);
+            confirmacion.setTitle("Compra exitosa");
+            confirmacion.setHeaderText("¡Gracias por tu compra!");
+            confirmacion.setContentText(String.format(
+                "Pedido #%s realizado con éxito.\n" +
+                "Total: $%,.2f\n" +
+                "Dirección de envío: %s\n" +
+                "Método de pago: %s",
+                pedido.getId().substring(0, 8).toUpperCase(),
+                pedido.getTotal(),
+                direccion,
+                metodoPago
+            ));
+            confirmacion.showAndWait();
         }
     }
     
@@ -567,169 +761,128 @@ public class CatalogoController {
         alert.setContentText(mensaje);
         alert.showAndWait();
     }
-    
 
-    private void actualizarContadorCarrito() {
-        int cantidad = carrito.getCantidadProductos();
-        contadorCarrito.setText(String.valueOf(cantidad));
-        contadorCarrito.setVisible(cantidad > 0);
-        
-        // Actualizar el contador de items en el panel del carrito
-        String textoItems = cantidad == 1 ? "(1 item)" : "(" + cantidad + " items)";
-        contadorItems.setText(textoItems);
-    }
-    
-    private void actualizarContadorListaDeseos() {
-        try {
-            int usuarioId = 1; // ID del usuario actual
-            System.out.println("Actualizando contador de lista de deseos para usuario: " + usuarioId);
-            
-            ListaDeseos listaDeseos = listaDeseosService.obtenerListaDeseos(usuarioId);
-            int cantidad = listaDeseos.getCantidadProductos();
-            
-            System.out.println("Cantidad de productos en lista de deseos: " + cantidad);
-            
-            // Asegurarse de que estamos en el hilo de la interfaz de usuario
-            if (contadorListaDeseos != null) {
-                Platform.runLater(() -> {
-                    contadorListaDeseos.setText(String.valueOf(cantidad));
-                    contadorListaDeseos.setVisible(cantidad > 0);
-                    System.out.println("Contador actualizado en la UI: " + cantidad);
-                });
-            } else {
-                System.err.println("Error: contadorListaDeseos es nulo");
-            }
-        } catch (Exception e) {
-            System.err.println("Error al actualizar contador de lista de deseos: " + e.getMessage());
-            e.printStackTrace();
+    // Validación adicional para evitar errores de NullPointerException en finalizarCompra
+    private boolean validarDatosCompra(Carrito carrito, String direccion, String metodoPago) {
+        if (carrito == null || carrito.estaVacio()) {
+            mostrarAlerta("Error", "El carrito no puede estar vacío");
+            return false;
         }
-    }
-    
-    @FXML
-    private void mostrarListaDeseos() {
-        try {
-            // Verificar que el recurso existe
-            java.net.URL url = getClass().getResource("/org/example/tiendav2/fxml/ListaDeseosView.fxml");
-            if (url == null) {
-                throw new IOException("No se pudo encontrar el archivo FXML");
-            }
-            
-            FXMLLoader loader = new FXMLLoader(url);
-            Parent root = loader.load();
-            
-            // Obtener el controlador y configurar el callback para agregar al carrito
-            ListaDeseosController controller = loader.getController();
-            controller.setOnAgregarAlCarrito(producto -> {
-                // Usar el método existente para agregar al carrito
-                agregarAlCarrito(producto);
-                // Actualizar el contador del carrito
-                actualizarContadorCarrito();
-            });
-            
-            Stage stage = new Stage();
-            stage.setTitle("Mi Lista de Deseos");
-            stage.setScene(new Scene(root, 800, 600));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.showAndWait();
-            
-            // Actualizar el contador después de cerrar la ventana
-            actualizarContadorListaDeseos();
-        } catch (Exception e) {
-            System.err.println("Error al cargar la lista de deseos:");
-            e.printStackTrace();
-            mostrarAlerta("Error", "No se pudo cargar la lista de deseos: " + e.getMessage());
+        if (direccion == null || direccion.trim().isEmpty()) {
+            mostrarAlerta("Error", "La dirección de envío es obligatoria");
+            return false;
         }
-    }
-
-    @FXML
-    private void productoAnterior() {
-        if (productosDisponibles.anterior()) {
-            mostrarProductoActual();
-        } else {
-            mostrarNotificacion("Ya estás en el primer producto");
+        if (metodoPago == null || metodoPago.trim().isEmpty()) {
+            mostrarAlerta("Error", "Debe seleccionar un método de pago");
+            return false;
         }
-    }
-    
-    @FXML
-    private void productoSiguiente() {
-        if (productosDisponibles.siguiente()) {
-            mostrarProductoActual();
-        } else {
-            mostrarNotificacion("No hay más productos");
-        }
-    }
-    
-    @FXML
-    private void activarModoNavegacion() {
-        productosDisponibles.irAlPrimero();
-        mostrarProductoActual();
-        mostrarNotificacion("Modo de navegación detallada activado");
-    }
-    
-    @FXML
-    private void desactivarModoNavegacion() {
-        mostrarProductos();
-        mostrarNotificacion("Vista de cuadrícula activada");
+        return true;
     }
     
     @FXML
     private void vaciarCarrito() {
-        if (carrito.estaVacio()) {
-            mostrarNotificacion("El carrito ya está vacío");
+        carrito.vaciarCarrito();
+        actualizarVistaCarrito();
+        mostrarNotificacion("Carrito vaciado");
+    }
+
+    @FXML
+    private void mostrarListaDeseos() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/tiendav2/fxml/ListaDeseosView.fxml"));
+            Parent root = loader.load();
+            
+            Stage stage = new Stage();
+            stage.setTitle("Lista de Deseos");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta("Error", "No se pudo abrir la lista de deseos: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void filtrarHombres() {
+        filtrarPorCategoria("hombres");
+    }
+
+    @FXML
+    private void filtrarMujeres() {
+        filtrarPorCategoria("mujeres");
+    }
+
+    @FXML
+    private void filtrarGorras() {
+        filtrarPorCategoria("gorras");
+    }
+
+    private void filtrarPorCategoria(String categoria) {
+        // Limpiar resultados anteriores
+        productosFiltrados.limpiar();
+        
+        // Si la categoría es vacía o "todos", limpiar el filtro (simplemente dejamos productosFiltrados vacío)
+        // y mostrarProductos() usará la lista completa
+        if (categoria == null || categoria.isEmpty() || categoria.equalsIgnoreCase("todos")) {
+            mostrarProductos();
+            mostrarNotificacion("Mostrando todos los productos");
             return;
         }
-        
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Vaciar carrito");
-        confirmacion.setHeaderText("¿Estás seguro de que quieres vaciar el carrito?");
-        confirmacion.setContentText("Se eliminarán todos los productos del carrito.");
-        
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            carrito.vaciarCarrito();
-            actualizarVistaCarrito();
-            mostrarNotificacion("Carrito vaciado");
-        }
-    }
-    
-    private void mostrarProductoActual() {
-        if (!productosDisponibles.estaVacia()) {
-            Producto producto = productosDisponibles.obtenerActual();
-            if (producto != null) {
-                grid.getChildren().clear();
-                VBox tarjeta = crearTarjetaProducto(producto);
-                grid.add(tarjeta, 0, 0);
-                System.out.println("Mostrando producto " + (productosDisponibles.obtenerIndiceActual() + 1) + 
-                               " de " + productosDisponibles.tamaño());
+
+        // Recorrer todos los productos disponibles
+        productosDisponibles.irAlPrimero();
+        for(int i = 0; i < productosDisponibles.tamaño(); i++) {
+            Producto p = productosDisponibles.obtenerActual();
+            
+            if (p != null) {
+                String nombre = p.getNombre().toLowerCase();
+                String desc = p.getDescripcion() != null ? p.getDescripcion().toLowerCase() : "";
+                String cat = categoria.toLowerCase();
+                
+                boolean coincide = false;
+                
+                // Lógica de coincidencia según categoría
+                if (cat.equals("gorras") && (nombre.contains("gorra") || nombre.contains("cap") || nombre.contains("hat"))) {
+                    coincide = true;
+                } else if (cat.equals("hombres") && (nombre.contains("hombre") || nombre.contains("men") || desc.contains("hombre"))) {
+                    coincide = true;
+                } else if (cat.equals("mujeres") && (nombre.contains("mujer") || nombre.contains("women") || nombre.contains("top") || nombre.contains("dress") || desc.contains("mujer"))) {
+                    coincide = true;
+                }
+                
+                if (coincide) {
+                    productosFiltrados.agregar(p);
+                }
             }
+            
+            productosDisponibles.siguiente();
         }
+        
+        // Verificar si se encontraron productos
+        if (productosFiltrados.tamaño() > 0) {
+            mostrarNotificacion("Filtrado por: " + categoria + " (" + productosFiltrados.tamaño() + " productos)");
+        } else {
+            mostrarNotificacion("No se encontraron productos en la categoría: " + categoria);
+        }
+        
+        mostrarProductos();
     }
 
-    private void animarHover(VBox box, boolean hover) {
-        double scaleTo = hover ? 1.03 : 1.0;
-        
-        ScaleTransition st = new ScaleTransition(Duration.millis(200), box);
-        st.setToX(scaleTo);
-        st.setToY(scaleTo);
-
-        if (hover) {
-            // Aplicar estilo de hover
-            box.setStyle(
-                "-fx-background-color: #1a1a1a; " +
-                "-fx-background-radius: 8; " +
-                "-fx-border-radius: 8; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,255,138,0.4), 15, 0, 0, 8);"
-            );
-        } else {
-            // Restaurar el estilo original
-            box.setStyle(
-                "-fx-background-color: #1a1a1a; " +
-                "-fx-background-radius: 8; " +
-                "-fx-border-radius: 8; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);"
-            );
+    @FXML
+    private void mostrarHistorialCompras() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/tiendav2/fxml/HistorialComprasView.fxml"));
+            Parent root = loader.load();
+            
+            Stage stage = new Stage();
+            stage.setTitle("Historial de Compras");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta("Error", "No se pudo abrir el historial de compras: " + e.getMessage());
         }
-        
-        st.play();
     }
 }

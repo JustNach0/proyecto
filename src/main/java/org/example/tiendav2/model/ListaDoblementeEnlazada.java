@@ -106,4 +106,11 @@ public class ListaDoblementeEnlazada<T> {
         
         return temp.getDato();
     }
+
+    public void limpiar() {
+        primero = null;
+        ultimo = null;
+        actual = null;
+        tamaño = 0;
+    }
 }

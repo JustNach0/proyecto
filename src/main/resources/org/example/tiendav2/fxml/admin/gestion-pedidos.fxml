@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.tiendav2.controller.admin.GestionPedidosController"
+      style="-fx-background-color: #f4f4f4;"
+      spacing="20">
+    
+    <padding>
+        <javafx.geometry.Insets top="20" right="20" bottom="20" left="20" />
+    </padding>
+
+    <!-- Título y filtros -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Gestión de Pedidos" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+        <Region HBox.hgrow="ALWAYS" />
+        
+        <ComboBox fx:id="cmbFiltroEstado" promptText="Filtrar por estado" onAction="#filtrarPorEstado" />
+        
+        <Button text="Actualizar" onAction="#actualizarLista" 
+                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;" />
+    </HBox>
+
+    <!-- Estadísticas rápidas -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <VBox alignment="CENTER" spacing="5" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;">
+            <Label text="Pedidos Totales" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;" />
+            <Label fx:id="lblTotalPedidos" text="0" style="-fx-text-fill: #2c3e50; -fx-font-size: 24px; -fx-font-weight: bold;" />
+        </VBox>
+        
+        <VBox alignment="CENTER" spacing="5" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;">
+            <Label text="Pendientes" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;" />
+            <Label fx:id="lblPendientes" text="0" style="-fx-text-fill: #f39c12; -fx-font-size: 24px; -fx-font-weight: bold;" />
+        </VBox>
+        
+        <VBox alignment="CENTER" spacing="5" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;">
+            <Label text="En Proceso" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;" />
+            <Label fx:id="lblEnProceso" text="0" style="-fx-text-fill: #3498db; -fx-font-size: 24px; -fx-font-weight: bold;" />
+        </VBox>
+        
+        <VBox alignment="CENTER" spacing="5" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;">
+            <Label text="Entregados" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;" />
+            <Label fx:id="lblEntregados" text="0" style="-fx-text-fill: #27ae60; -fx-font-size: 24px; -fx-font-weight: bold;" />
+        </VBox>
+    </HBox>
+
+    <!-- Tabla de pedidos -->
+    <TableView fx:id="tablaPedidos" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 8;">
+        <columns>
+            <TableColumn fx:id="colId" text="ID Pedido" prefWidth="100" />
+            <TableColumn fx:id="colUsuario" text="Usuario" prefWidth="100" />
+            <TableColumn fx:id="colFecha" text="Fecha" prefWidth="150" />
+            <TableColumn fx:id="colTotal" text="Total" prefWidth="100" />
+            <TableColumn fx:id="colDireccion" text="Direccion" prefWidth="200" />
+            <TableColumn fx:id="colMetodoPago" text="Metodo Pago" prefWidth="120" />
+            <TableColumn fx:id="colEstado" text="Estado" prefWidth="120" />
+            <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="150" />
+        </columns>
+    </TableView>
+
+</VBox>

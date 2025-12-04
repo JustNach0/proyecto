@@ -1,0 +1,13 @@
+1. El problema está en esta línea:
+   text="\.00"
+
+2. Debe cambiarse a cualquiera de estas dos opciones:
+
+   Opción 1 (con símbolo de dólar normal):
+   text="$0.00"
+   
+   Opción 2 (con símbolo de dólar escapado):
+   text="\$0.00"
+   
+   Opción 3 (sin símbolo de dólar):
+   text="0.00"

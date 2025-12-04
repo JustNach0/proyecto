@@ -9,8 +9,17 @@ import java.util.Map;
 public class LoginService {
     private final Map<String, Usuario> usuariosRegistrados;
     private Usuario usuarioActual;
-
-    public LoginService() {
+    
+    private static LoginService instancia;
+    
+    public static synchronized LoginService getInstancia() {
+        if (instancia == null) {
+            instancia = new LoginService();
+        }
+        return instancia;
+    }
+    
+    private LoginService() {
         this.usuariosRegistrados = new HashMap<>();
         // Usuario administrador por defecto
         boolean adminCreado = registrarUsuario("admin@example.com", "admin", "Administrador", Rol.ADMINISTRADOR);

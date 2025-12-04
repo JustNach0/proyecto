@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.tiendav2.controller.DialogoFinalizarCompraController"
+      style="-fx-background-color: #0d0d0d;"
+      spacing="0"
+      prefWidth="600"
+      prefHeight="550">
+
+    <!-- Header -->
+    <HBox style="-fx-background-color: linear-gradient(to right, #00ff8a, #00cc6f); -fx-padding: 25;">
+        <VBox spacing="5">
+            <Label text="Finalizar Compra" style="-fx-text-fill: #0d0d0d; -fx-font-size: 28px; -fx-font-weight: bold;" />
+            <Label text="Completa los datos para procesar tu pedido" style="-fx-text-fill: #0d0d0d; -fx-font-size: 14px;" />
+        </VBox>
+    </HBox>
+
+    <!-- Contenido -->
+    <VBox spacing="25" style="-fx-padding: 30;">
+        
+        <!-- Resumen del pedido -->
+        <VBox spacing="10" style="-fx-background-color: #1a1a1a; -fx-padding: 20; -fx-background-radius: 8;">
+            <Label text="Resumen del Pedido" style="-fx-text-fill: #00ff8a; -fx-font-size: 16px; -fx-font-weight: bold;" />
+            <Separator style="-fx-background-color: #333;" />
+            
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Total de productos:" style="-fx-text-fill: #aaa; -fx-font-size: 14px;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="lblCantidadProductos" text="0" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" />
+            </HBox>
+            
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Total a pagar:" style="-fx-text-fill: #aaa; -fx-font-size: 16px; -fx-font-weight: bold;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="lblTotal" text="\$0.00" style="-fx-text-fill: #00ff8a; -fx-font-size: 24px; -fx-font-weight: bold;" />
+            </HBox>
+        </VBox>
+
+        <!-- Dirección de envío -->
+        <VBox spacing="10">
+            <Label text="Direccion de Envio" style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" />
+            <TextField fx:id="txtDireccion" 
+                       promptText="Ej: Calle Principal #123, Colonia Centro"
+                       style="-fx-background-color: #1a1a1a; -fx-text-fill: white; -fx-prompt-text-fill: #666; -fx-font-size: 14px; -fx-padding: 12; -fx-background-radius: 5; -fx-border-color: #333; -fx-border-radius: 5;" />
+        </VBox>
+
+        <!-- Método de pago -->
+        <VBox spacing="10">
+            <Label text="Metodo de Pago" style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" />
+            
+            <VBox spacing="8">
+                <RadioButton fx:id="rbTarjetaCredito" text="Tarjeta de Credito" 
+                            style="-fx-text-fill: white; -fx-font-size: 14px;" selected="true">
+                    <toggleGroup>
+                        <ToggleGroup fx:id="grupoMetodoPago" />
+                    </toggleGroup>
+                </RadioButton>
+                
+                <RadioButton fx:id="rbTarjetaDebito" text="Tarjeta de Debito" 
+                            toggleGroup="$grupoMetodoPago"
+                            style="-fx-text-fill: white; -fx-font-size: 14px;" />
+                
+                <RadioButton fx:id="rbPayPal" text="PayPal" 
+                            toggleGroup="$grupoMetodoPago"
+                            style="-fx-text-fill: white; -fx-font-size: 14px;" />
+                
+                <RadioButton fx:id="rbEfectivo" text="Efectivo (Pago contra entrega)" 
+                            toggleGroup="$grupoMetodoPago"
+                            style="-fx-text-fill: white; -fx-font-size: 14px;" />
+            </VBox>
+        </VBox>
+
+    </VBox>
+
+    <!-- Botones -->
+    <HBox spacing="15" alignment="CENTER" style="-fx-padding: 0 30 30 30;">
+        <Button text="Cancelar" onAction="#cancelar" 
+                style="-fx-background-color: #333; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 40; -fx-background-radius: 5; -fx-cursor: hand;"
+                prefWidth="150" />
+        
+        <Button text="Confirmar Pedido" onAction="#confirmar" 
+                style="-fx-background-color: #00ff8a; -fx-text-fill: #0d0d0d; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 40; -fx-background-radius: 5; -fx-cursor: hand;"
+                prefWidth="200" />
+    </HBox>
+
+</VBox>

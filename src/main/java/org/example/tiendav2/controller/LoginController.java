@@ -30,7 +30,7 @@ public class LoginController {
     @FXML
     private Button btnLogin;
 
-    private final LoginService loginService = new LoginService();
+    private final LoginService loginService = LoginService.getInstancia();
 
     @FXML
     private void handleLogin() {

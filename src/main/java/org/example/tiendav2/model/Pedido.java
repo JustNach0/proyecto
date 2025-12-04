@@ -9,7 +9,7 @@ public class Pedido {
     private final LocalDateTime fechaCreacion;
     private EstadoPedido estado;
     private String direccionEnvio;
-    private String metodoPago;
+    private String metodoPago; // Almacena el método de pago como String
 
     public enum EstadoPedido {
         PENDIENTE,
@@ -20,6 +20,16 @@ public class Pedido {
     }
 
     public Pedido(Carrito carrito, String direccionEnvio, String metodoPago) {
+        if (carrito == null) {
+            throw new IllegalArgumentException("El carrito no puede ser nulo");
+        }
+        if (direccionEnvio == null || direccionEnvio.trim().isEmpty()) {
+            throw new IllegalArgumentException("La dirección de envío es requerida");
+        }
+        if (metodoPago == null || metodoPago.trim().isEmpty()) {
+            throw new IllegalArgumentException("El método de pago es requerido");
+        }
+        
         this.id = UUID.randomUUID().toString();
         this.carrito = new Carrito(carrito.getUsuarioId());
         for (int i = 0; i < carrito.getCantidadProductos(); i++) {
@@ -27,8 +37,8 @@ public class Pedido {
         }
         this.fechaCreacion = LocalDateTime.now();
         this.estado = EstadoPedido.PENDIENTE;
-        this.direccionEnvio = direccionEnvio;
-        this.metodoPago = metodoPago;
+        this.direccionEnvio = direccionEnvio.trim();
+        this.metodoPago = metodoPago.toString().trim(); // Aseguramos que sea un String
     }
 
     public String getId() {
